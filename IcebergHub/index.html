@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Iceberg Hub</title>
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- PWA support -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+
+  <!-- Firebase Auth -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, RecaptchaVerifier, signInWithPhoneNumber } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCHZWD0FYjYf4I3uZnVXzls0apTkOt5iD0",
+      authDomain: "iceberg-hub.firebaseapp.com",
+      projectId: "iceberg-hub",
+      storageBucket: "iceberg-hub.appspot.com",
+      messagingSenderId: "291846027715",
+      appId: "1:291846027715:web:7c8f23630c58b734fe0aa4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    document.querySelector(".login-btn.google").addEventListener("click", async () => {
+      const provider = new GoogleAuthProvider();
+      try {
+        const result = await signInWithPopup(auth, provider);
+        alert(`Welcome ${result.user.displayName || "User"}`);
+        document.getElementById("login-modal").classList.add("hidden");
+      } catch (err) {
+        alert("Google Sign-In Failed\n" + err.message);
+      }
+    });
+
+    document.querySelector(".login-btn.phone").addEventListener("click", () => {
+      const phoneNumber = prompt("Enter your phone number (e.g., +233501234567):");
+      if (!phoneNumber) return;
+      window.recaptchaVerifier = new RecaptchaVerifier(auth, 'login-btn-main', { 'size': 'invisible' });
+      signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier)
+        .then((confirmationResult) => {
+          const code = prompt("Enter the verification code sent to your phone:");
+          return confirmationResult.confirm(code);
+        })
+        .then((result) => {
+          alert(`Welcome ${result.user.phoneNumber}`);
+          document.getElementById("login-modal").classList.add("hidden");
+        })
+        .catch((err) => {
+          alert("Phone Sign-In Failed\n" + err.message);
+        });
+    });
+  </script>
+</head>
+<body>
+  <!-- Login Modal -->
+  <div id="login-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Join Iceberg Hub</h2>
+      <button class="login-btn google">Continue with Google</button>
+      <button class="login-btn apple">Continue with Apple</button>
+      <button class="login-btn phone">Continue with Phone</button>
+      <p>or</p>
+      <input type="email" id="login-email" placeholder="Enter your email" />
+      <button class="login-btn email">Continue</button>
+      <button class="modal-close">✖️ Close</button>
+    </div>
+  </div>
+
+  <div class="hero" id="hero">
+    <div class="overlay">
+      <header>
+        <h1 class="logo">Iceberg Hub</h1>
+        <nav>
+          <a href="#shop" class="btn">Shop Now</a>
+          <a href="#about" class="btn">About</a>
+          <a href="#contact" class="btn">Contact</a>
+          <button id="login-btn-main" class="btn">Login</button>
+          <button id="toggle-dark" class="btn">🌓</button>
+          <button id="cart-icon" class="btn">🛒 (<span id="cart-count">0</span>)</button>
+        </nav>
+      </header>
+      <section class="intro">
+        <h2>Your Expert Sneaker Plug</h2>
+        <p>Fresh drops, exclusive kicks, and the ultimate sneaker experience.</p>
+        <a href="#shop" class="cta">Shop Now</a>
+      </section>
+    </div>
+  </div>
+
+  <section class="products" id="shop">
+    <h2>Latest Drops</h2>
+    <div id="product-grid" class="product-grid"></div>
+  </section>
+
+  <section class="page-content" id="page-content"></section>
+
+  <footer id="contact">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <h3>Iceberg Hub</h3>
+        <p>Your ultimate sneaker plug. Always fresh. Always exclusive.</p>
+      </div>
+      <div class="footer-links">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="#shop">Shop</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="footer-socials">
+        <h4>Connect</h4>
+        <a href="https://instagram.com/ysl_iceberg" target="_blank">Instagram</a><br/>
+        <a href="https://x.com/ysl_iceberg" target="_blank">X</a><br/>
+        <a href="https://wa.me/+233503549822" target="_blank">WhatsApp</a>
+      </div>
+    </div>
+    <p class="footer-copy">© 2025 Iceberg Hub. All rights reserved.</p>
+  </footer>
+
+  <div class="cart-sidebar" id="cart-sidebar">
+    <h3>Your Cart</h3>
+    <ul id="cart-items"></ul>
+    <p class="total">Total: $<span id="cart-total">0.00</span></p>
+    <button id="checkout-btn">Checkout</button>
+    <button id="close-cart">Close</button>
+    <div id="payment-info" class="payment-info" style="display: none;">
+      <p><strong>MoMo (MTN):</strong> <code>+233257367027</code> (Kingsley Adjei)</p>
+      <p><strong>Zenith Bank:</strong> <code>4110451272</code> (Kingsley Adjei)</p>
+    </div>
+  </div>
+
+  <!-- About Template -->
+  <template id="about-template">
+    <section class="about">
+      <div class="about-content">
+        <h2>About Iceberg Hub</h2>
+        <p>We’re not just a sneaker store — we’re a culture. From streetwear to elite kicks, Iceberg Hub gives you access to the freshest drops, unreleased pairs, and exclusive collabs you won’t find anywhere else.</p>
+        <p>Based in Ghana, Western Region – Takoradi, shipping worldwide.</p>
+        <div class="app-download">
+          <h3>Download Our App</h3>
+          <a href="#"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" class="store-icon"></a>
+          <a href="#"><img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Get it on Google Play" class="store-icon"></a>
+        </div>
+      </div>
+    </section>
+  </template>
+
+  <script src="script.js"></script>
+</body>
+</html>
